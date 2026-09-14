@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { prisma } from "../config/database";
 import { scheduleEmails } from "../services/scheduler.service";
 
 export async function scheduleEmailsController(
@@ -6,8 +7,11 @@ export async function scheduleEmailsController(
   res: Response
 ) {
   try {
+    const user = req.user as {
+      id: string;
+    };
+
     const {
-      userId,
       senderId,
       recipients,
       subject,
@@ -16,8 +20,15 @@ export async function scheduleEmailsController(
       delayMs,
     } = req.body;
 
+    // Validate authentication
+    if (!user?.id) {
+      return res.status(401).json({
+        message: "Authentication required",
+      });
+    }
+
+    // Validate request body
     if (
-      !userId ||
       !senderId ||
       !recipients ||
       !Array.isArray(recipients) ||
@@ -32,6 +43,21 @@ export async function scheduleEmailsController(
       });
     }
 
+    // Make sure sender belongs to logged-in user
+    const sender = await prisma.sender.findFirst({
+      where: {
+        id: senderId,
+        userId: user.id,
+      },
+    });
+
+    if (!sender) {
+      return res.status(403).json({
+        message: "Sender does not belong to this user",
+      });
+    }
+
+    // Validate start time
     const scheduleDate = new Date(startTime);
 
     if (isNaN(scheduleDate.getTime())) {
@@ -46,9 +72,13 @@ export async function scheduleEmailsController(
       });
     }
 
+    // Validate delay
     if (
       typeof delayMs !== "number" ||
-      delayMs < Number(process.env.MIN_EMAIL_DELAY_MS || 2000)
+      delayMs <
+        Number(
+          process.env.MIN_EMAIL_DELAY_MS || 2000
+        )
     ) {
       return res.status(400).json({
         message: `delayMs must be at least ${
@@ -58,7 +88,7 @@ export async function scheduleEmailsController(
     }
 
     const emails = await scheduleEmails({
-      userId,
+      userId: user.id,
       senderId,
       recipients,
       subject,

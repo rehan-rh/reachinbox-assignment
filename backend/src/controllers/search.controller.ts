@@ -6,17 +6,20 @@ export async function searchEmailsController(
   res: Response
 ) {
   try {
-    const q = String(req.query.q || "");
-    const userId = String(req.query.userId || "");
+    const user = req.user as {
+      id: string;
+    };
 
-    if (!q || !userId) {
+    const q = String(req.query.q || "");
+
+    if (!q) {
       return res.status(400).json({
-        message: "q and userId are required",
+        message: "q is required",
       });
     }
 
     const results = await searchEmails(
-      userId,
+      user.id,
       q
     );
 

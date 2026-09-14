@@ -5,6 +5,7 @@ import passport from "./config/passport";
 
 import emailRoutes from "./routes/email.routes";
 import authRoutes from "./routes/auth.routes";
+import { serverAdapter } from "./config/bull-board";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use(
 
 // Initialize Passport
 app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -39,6 +41,11 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+
+app.use(
+  "/admin/queues",
+  serverAdapter.getRouter()
+);
 
 app.use("/api/emails", emailRoutes);
 

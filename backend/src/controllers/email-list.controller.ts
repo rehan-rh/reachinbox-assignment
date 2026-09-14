@@ -6,6 +6,10 @@ export async function getEmailsController(
   res: Response
 ) {
   try {
+    const user = req.user as {
+      id: string;
+    };
+
     const status = req.query.status as
       | "SCHEDULED"
       | "SENT"
@@ -13,11 +17,10 @@ export async function getEmailsController(
       | undefined;
 
     const emails = await prisma.email.findMany({
-      where: status
-        ? {
-            status,
-          }
-        : undefined,
+      where: {
+        userId: user.id,
+        ...(status ? { status } : {}),
+      },
       include: {
         sender: true,
       },
