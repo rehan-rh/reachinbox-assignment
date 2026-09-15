@@ -966,30 +966,30 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
-"use client";
+'use client';
 ;
 ;
 function SlackConnection({ userId }) {
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [disconnecting, setDisconnecting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [connected, setConnected] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         async function loadSlackStatus() {
             try {
                 setLoading(true);
-                setError("");
-                const response = await fetch("http://localhost:5000/auth/slack/status", {
-                    credentials: "include"
+                setError('');
+                const response = await fetch('http://localhost:5000/auth/slack/status', {
+                    credentials: 'include'
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    throw new Error("Failed to load Slack status");
+                    throw new Error('Failed to load Slack status');
                 }
                 setConnected(data.connected);
             } catch (error) {
-                console.error("Failed to load Slack status:", error);
-                setError(error instanceof Error ? error.message : "Failed to load Slack status");
+                console.error('Failed to load Slack status:', error);
+                setError(error instanceof Error ? error.message : 'Failed to load Slack status');
             } finally{
                 setLoading(false);
             }
@@ -1004,19 +1004,19 @@ function SlackConnection({ userId }) {
     async function disconnectSlack() {
         try {
             setDisconnecting(true);
-            setError("");
-            const response = await fetch(`http://localhost:5000/auth/slack/${userId}`, {
-                method: "DELETE",
-                credentials: "include"
+            setError('');
+            const response = await fetch('http://localhost:5000/auth/slack', {
+                method: 'DELETE',
+                credentials: 'include'
             });
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || "Failed to disconnect Slack");
+                throw new Error(data.message || 'Failed to disconnect Slack');
             }
             setConnected(false);
         } catch (error) {
             console.error(error);
-            setError(error instanceof Error ? error.message : "Failed to disconnect Slack");
+            setError(error instanceof Error ? error.message : 'Failed to disconnect Slack');
         } finally{
             setDisconnecting(false);
         }
@@ -1036,7 +1036,7 @@ function SlackConnection({ userId }) {
                                     children: "#"
                                 }, void 0, false, {
                                     fileName: "[project]/components/SlackConnection.tsx",
-                                    lineNumber: 111,
+                                    lineNumber: 92,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1046,7 +1046,7 @@ function SlackConnection({ userId }) {
                                             children: "Slack Notifications"
                                         }, void 0, false, {
                                             fileName: "[project]/components/SlackConnection.tsx",
-                                            lineNumber: 116,
+                                            lineNumber: 97,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1054,19 +1054,19 @@ function SlackConnection({ userId }) {
                                             children: "Get notified when your hourly email limit is reached."
                                         }, void 0, false, {
                                             fileName: "[project]/components/SlackConnection.tsx",
-                                            lineNumber: 120,
+                                            lineNumber: 101,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/SlackConnection.tsx",
-                                    lineNumber: 115,
+                                    lineNumber: 96,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/SlackConnection.tsx",
-                            lineNumber: 110,
+                            lineNumber: 91,
                             columnNumber: 11
                         }, this),
                         loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1074,7 +1074,7 @@ function SlackConnection({ userId }) {
                             children: "Checking Slack connection..."
                         }, void 0, false, {
                             fileName: "[project]/components/SlackConnection.tsx",
-                            lineNumber: 127,
+                            lineNumber: 108,
                             columnNumber: 13
                         }, this),
                         !loading && connected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1082,7 +1082,7 @@ function SlackConnection({ userId }) {
                             children: "● Slack connected"
                         }, void 0, false, {
                             fileName: "[project]/components/SlackConnection.tsx",
-                            lineNumber: 133,
+                            lineNumber: 114,
                             columnNumber: 13
                         }, this),
                         !loading && !connected && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1090,7 +1090,7 @@ function SlackConnection({ userId }) {
                             children: "Slack is not connected."
                         }, void 0, false, {
                             fileName: "[project]/components/SlackConnection.tsx",
-                            lineNumber: 139,
+                            lineNumber: 120,
                             columnNumber: 13
                         }, this),
                         error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1098,13 +1098,13 @@ function SlackConnection({ userId }) {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/components/SlackConnection.tsx",
-                            lineNumber: 145,
-                            columnNumber: 13
+                            lineNumber: 125,
+                            columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/SlackConnection.tsx",
-                    lineNumber: 109,
+                    lineNumber: 90,
                     columnNumber: 9
                 }, this),
                 !loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -1112,10 +1112,10 @@ function SlackConnection({ userId }) {
                         onClick: disconnectSlack,
                         disabled: disconnecting,
                         className: "rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50",
-                        children: disconnecting ? "Disconnecting..." : "Disconnect"
+                        children: disconnecting ? 'Disconnecting...' : 'Disconnect'
                     }, void 0, false, {
                         fileName: "[project]/components/SlackConnection.tsx",
-                        lineNumber: 154,
+                        lineNumber: 131,
                         columnNumber: 15
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                         onClick: connectSlack,
@@ -1123,23 +1123,23 @@ function SlackConnection({ userId }) {
                         children: "Connect Slack"
                     }, void 0, false, {
                         fileName: "[project]/components/SlackConnection.tsx",
-                        lineNumber: 164,
+                        lineNumber: 139,
                         columnNumber: 15
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/SlackConnection.tsx",
-                    lineNumber: 152,
+                    lineNumber: 129,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/SlackConnection.tsx",
-            lineNumber: 108,
+            lineNumber: 89,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/SlackConnection.tsx",
-        lineNumber: 107,
+        lineNumber: 88,
         columnNumber: 5
     }, this);
 }
