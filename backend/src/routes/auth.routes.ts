@@ -28,6 +28,9 @@ router.get(
     failureRedirect: "/auth/login-failed",
   }),
   (_req, res) => {
+    // DEBUG: Check which FRONTEND_URL Render is actually using
+    console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+
     res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
   },
 );
@@ -115,6 +118,10 @@ router.get("/slack", async (req, res) => {
   }
 });
 
+// ======================================================
+// SLACK CALLBACK
+// ======================================================
+
 router.get("/slack/callback", async (req, res) => {
   try {
     await slackInstaller.handleCallback(req, res, {
@@ -155,17 +162,17 @@ router.get("/slack/callback", async (req, res) => {
           });
 
           slackRes.end(`
-                <!DOCTYPE html>
-                <html>
-                  <head>
-                    <title>Slack Connected</title>
-                  </head>
-                  <body>
-                    <h2>Slack connected successfully!</h2>
-                    <p>You can close this window.</p>
-                  </body>
-                </html>
-              `);
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Slack Connected</title>
+              </head>
+              <body>
+                <h2>Slack connected successfully!</h2>
+                <p>You can close this window.</p>
+              </body>
+            </html>
+          `);
         } catch (error) {
           console.error("Slack connection save error:", error);
 
@@ -187,14 +194,14 @@ router.get("/slack/callback", async (req, res) => {
         });
 
         slackRes.end(`
-              <!DOCTYPE html>
-              <html>
-                <body>
-                  <h2>Slack connection failed.</h2>
-                  <p>Please try again.</p>
-                </body>
-              </html>
-            `);
+          <!DOCTYPE html>
+          <html>
+            <body>
+              <h2>Slack connection failed.</h2>
+              <p>Please try again.</p>
+            </body>
+          </html>
+        `);
       },
     });
   } catch (error) {
@@ -213,10 +220,6 @@ router.get("/slack/callback", async (req, res) => {
 router.get("/slack/failed", (_req, res) => {
   res.status(401).send("Slack authentication failed.");
 });
-
-// ======================================================
-// SLACK DISCONNECT
-// ======================================================
 
 // ======================================================
 // SLACK STATUS
@@ -274,4 +277,5 @@ router.delete("/slack", async (req, res) => {
     });
   }
 });
+
 export default router;
