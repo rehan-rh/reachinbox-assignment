@@ -27,27 +27,40 @@ return {0, count}
 `;
 
 export async function checkHourlyRateLimit(
-  senderId: string
+  campaignId: string,
+  limit: number
 ): Promise<RateLimitResult> {
-  const limit = Number(
-    process.env.MAX_EMAILS_PER_HOUR || 100
-  );
-
   const now = new Date();
 
   const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(now.getUTCDate()).padStart(2, "0");
-  const hour = String(now.getUTCHours()).padStart(2, "0");
 
-  const windowKey = `${year}-${month}-${day}-${hour}`;
+  const month = String(
+    now.getUTCMonth() + 1
+  ).padStart(2, "0");
 
-  const key = `email:rate:${senderId}:${windowKey}`;
+  const day = String(
+    now.getUTCDate()
+  ).padStart(2, "0");
+
+  const hour = String(
+    now.getUTCHours()
+  ).padStart(2, "0");
+
+  const windowKey =
+    `${year}-${month}-${day}-${hour}`;
+
+  /*
+   * Each campaign gets its own Redis rate-limit counter.
+   */
+  const key =
+    `email:rate:${campaignId}:${windowKey}`;
 
   const secondsUntilNextHour =
     3600 -
-    (now.getUTCMinutes() * 60 +
-      now.getUTCSeconds());
+    (
+      now.getUTCMinutes() * 60 +
+      now.getUTCSeconds()
+    );
 
   const result = (await redis.eval(
     RATE_LIMIT_SCRIPT,
@@ -57,16 +70,24 @@ export async function checkHourlyRateLimit(
     Math.max(secondsUntilNextHour, 1)
   )) as [number, number];
 
-  const allowed = Number(result[0]) === 1;
-  const count = Number(result[1]);
+  const allowed =
+    Number(result[0]) === 1;
+
+  const count =
+    Number(result[1]);
 
   const retryAt = new Date(
     now.getTime() +
-      Math.max(secondsUntilNextHour, 1) * 1000
+      Math.max(
+        secondsUntilNextHour,
+        1
+      ) *
+        1000
   );
 
   const limitJustExceeded =
-    !allowed && count === limit + 1;
+    !allowed &&
+    count === limit + 1;
 
   return {
     allowed,

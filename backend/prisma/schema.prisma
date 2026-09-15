@@ -43,6 +43,8 @@ model Email {
   id             String      @id @default(cuid())
   userId         String
   senderId       String
+  campaignId     String      @default(cuid())
+  hourlyLimit    Int         @default(100)
   recipient      String
   subject        String
   body           String
@@ -61,6 +63,7 @@ model Email {
   @@index([userId, status])
   @@index([scheduledAt])
   @@index([recipient])
+  @@index([campaignId])
 }
 
 model SlackConnection {

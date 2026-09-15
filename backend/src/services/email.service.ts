@@ -8,47 +8,37 @@ import { sendSlackRateLimitNotification } from "./slack.service";
 
 export async function sendEmail(emailId: string) {
   const email = await prisma.email.findUnique({
-    where: {
-      id: emailId,
-    },
-    include: {
-      sender: true,
-    },
+    where: { id: emailId },
+    include: { sender: true },
   });
 
   if (!email) {
-    throw new Error(`Email ${emailId} not found`);
+    throw new Error(
+      `Email ${emailId} not found`
+    );
   }
 
-  // Idempotency
   if (email.status === "SENT") {
     console.log(
       `Email ${emailId} was already sent. Skipping.`
     );
-
     return;
   }
 
-  // Check hourly rate limit
-  const rateLimit = await checkHourlyRateLimit(
-    email.senderId
-  );
+  /*
+   * Rate limit belongs to this campaign.
+   */
+  const rateLimit =
+    await checkHourlyRateLimit(
+      email.campaignId,
+      email.hourlyLimit
+    );
 
   if (!rateLimit.allowed) {
     console.log(
-      `Hourly rate limit reached for sender ${email.sender.email}`
+      `Hourly rate limit reached for campaign ${email.campaignId}`
     );
 
-    /*
-     * Only the first email that exceeds the limit
-     * sends a Slack notification.
-     *
-     * Example:
-     * limit = 100
-     * email #101 -> notification
-     * email #102 -> no notification
-     * email #103 -> no notification
-     */
     if (rateLimit.limitJustExceeded) {
       await sendSlackRateLimitNotification(
         email.userId,
@@ -57,14 +47,13 @@ export async function sendEmail(emailId: string) {
       );
     }
 
-    throw new RateLimitError(rateLimit.retryAt);
+    throw new RateLimitError(
+      rateLimit.retryAt
+    );
   }
 
-  // Mark processing
   await prisma.email.update({
-    where: {
-      id: emailId,
-    },
+    where: { id: emailId },
     data: {
       status: "PROCESSING",
       attempts: {
@@ -74,7 +63,6 @@ export async function sendEmail(emailId: string) {
   });
 
   try {
-    // Enforce minimum delay between sends
     await waitForSendSlot(
       email.senderId,
       Number(
@@ -82,19 +70,18 @@ export async function sendEmail(emailId: string) {
       )
     );
 
-    const info = await emailTransporter.sendMail({
-      from: email.sender.email,
-      to: email.recipient,
-      subject: email.subject,
-      text: email.body,
-    });
+    const info =
+      await emailTransporter.sendMail({
+        from: email.sender.email,
+        to: email.recipient,
+        subject: email.subject,
+        text: email.body,
+      });
 
     const sentAt = new Date();
 
     await prisma.email.update({
-      where: {
-        id: emailId,
-      },
+      where: { id: emailId },
       data: {
         status: "SENT",
         sentAt,
@@ -120,9 +107,7 @@ export async function sendEmail(emailId: string) {
     return info;
   } catch (error) {
     await prisma.email.update({
-      where: {
-        id: emailId,
-      },
+      where: { id: emailId },
       data: {
         status: "FAILED",
       },

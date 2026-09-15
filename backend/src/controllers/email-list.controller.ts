@@ -25,7 +25,7 @@ export async function getEmailsController(
         sender: true,
       },
       orderBy: {
-        scheduledAt: "asc",
+        scheduledAt: "desc",
       },
     });
 

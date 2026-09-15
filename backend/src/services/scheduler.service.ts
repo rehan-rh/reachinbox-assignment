@@ -1,7 +1,6 @@
+import crypto from "crypto";
 import { prisma } from "../config/database";
 import { emailQueue } from "../queues/email.queue";
-import crypto from "crypto";
-import { indexEmail } from "./search.service";
 
 interface ScheduleEmailsInput {
   userId: string;
@@ -11,17 +10,26 @@ interface ScheduleEmailsInput {
   body: string;
   startTime: Date;
   delayMs: number;
+  hourlyLimit: number;
 }
 
-export async function scheduleEmails(input: ScheduleEmailsInput) {
+export async function scheduleEmails(
+  input: ScheduleEmailsInput
+) {
   const emails = [];
+
+  /*
+   * One campaign ID is shared by every email created
+   * during this scheduling request.
+   */
+  const campaignId = crypto.randomUUID();
 
   for (let i = 0; i < input.recipients.length; i++) {
     const recipient = input.recipients[i];
 
-    // Each email is scheduled after the previous one
     const scheduledAt = new Date(
-      input.startTime.getTime() + i * input.delayMs
+      input.startTime.getTime() +
+        i * input.delayMs
     );
 
     const idempotencyKey = crypto.randomUUID();
@@ -30,31 +38,20 @@ export async function scheduleEmails(input: ScheduleEmailsInput) {
       data: {
         userId: input.userId,
         senderId: input.senderId,
+
+        campaignId,
+        hourlyLimit: input.hourlyLimit,
+
         recipient,
         subject: input.subject,
         body: input.body,
+
         scheduledAt,
         status: "SCHEDULED",
+
         idempotencyKey,
       },
     });
-
-    // Index scheduled email in Elasticsearch
-    await indexEmail({
-      id: email.id,
-      userId: email.userId,
-      recipient: email.recipient,
-      subject: email.subject,
-      body: email.body,
-      status: "SCHEDULED",
-      scheduledAt: email.scheduledAt,
-      sentAt: null,
-    });
-
-    const delay = Math.max(
-      0,
-      scheduledAt.getTime() - Date.now()
-    );
 
     await emailQueue.add(
       "send-email",
@@ -63,7 +60,12 @@ export async function scheduleEmails(input: ScheduleEmailsInput) {
       },
       {
         jobId: email.id,
-        delay,
+
+        delay: Math.max(
+          0,
+          scheduledAt.getTime() - Date.now()
+        ),
+
         removeOnComplete: false,
         removeOnFail: false,
       }

@@ -5,6 +5,7 @@ import { slackInstaller } from "../config/slack-oauth";
 
 import {
   disconnectSlack,
+  getSlackConnection,
   saveSlackConnection,
 } from "../services/slack.service";
 
@@ -17,11 +18,8 @@ const router = Router();
 router.get(
   "/google",
   passport.authenticate("google", {
-    scope: [
-      "profile",
-      "email",
-    ],
-  })
+    scope: ["profile", "email"],
+  }),
 );
 
 router.get(
@@ -30,68 +28,55 @@ router.get(
     failureRedirect: "/auth/login-failed",
   }),
   (_req, res) => {
-    res.redirect(
-      `${process.env.FRONTEND_URL}/dashboard`
-    );
-  }
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+  },
 );
 
 // ======================================================
 // CURRENT USER
 // ======================================================
 
-router.get(
-  "/me",
-  (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({
-        message: "Not authenticated",
-      });
-    }
-
-    res.json({
-      user: req.user,
+router.get("/me", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      message: "Not authenticated",
     });
   }
-);
+
+  res.json({
+    user: req.user,
+  });
+});
 
 // ======================================================
 // LOGOUT
 // ======================================================
 
-router.post(
-  "/logout",
-  (req, res, next) => {
-    req.logout((error) => {
-      if (error) {
-        return next(error);
+router.post("/logout", (req, res, next) => {
+  req.logout((error) => {
+    if (error) {
+      return next(error);
+    }
+
+    req.session.destroy((sessionError) => {
+      if (sessionError) {
+        return next(sessionError);
       }
 
-      req.session.destroy((sessionError) => {
-        if (sessionError) {
-          return next(sessionError);
-        }
-
-        res.json({
-          message: "Logged out successfully",
-        });
+      res.json({
+        message: "Logged out successfully",
       });
     });
-  }
-);
+  });
+});
 
 // ======================================================
 // GOOGLE LOGIN FAILED
 // ======================================================
 
-router.get(
-  "/login-failed",
-  (_req, res) => {
-    res.status(401).send(
-      "Google authentication failed."
-    );
-  }
-);
+router.get("/login-failed", (_req, res) => {
+  res.status(401).send("Google authentication failed.");
+});
 
 // ======================================================
 // SLACK OAUTH
@@ -100,9 +85,7 @@ router.get(
 router.get("/slack", async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
-      return res.status(401).send(
-        "Login with Google before connecting Slack."
-      );
+      return res.status(401).send("Login with Google before connecting Slack.");
     }
 
     const user = req.user as {
@@ -116,96 +99,62 @@ router.get("/slack", async (req, res) => {
       res,
       {},
       {
-        scopes: [
-          "chat:write",
-          "channels:read",
-        ],
+        scopes: ["chat:write", "channels:read"],
         metadata: JSON.stringify({
           userId,
         }),
-        redirectUri:
-          process.env.SLACK_CALLBACK_URL!,
-      }
+        redirectUri: process.env.SLACK_CALLBACK_URL!,
+      },
     );
   } catch (error) {
-    console.error(
-      "Slack OAuth start error:",
-      error
-    );
+    console.error("Slack OAuth start error:", error);
 
     if (!res.headersSent) {
-      res
-        .status(500)
-        .send("Failed to start Slack OAuth.");
+      res.status(500).send("Failed to start Slack OAuth.");
     }
   }
 });
 
-router.get(
-  "/slack/callback",
-  async (req, res) => {
-    try {
-      await slackInstaller.handleCallback(
-        req,
-        res,
-        {
-          success: async (
-            installation,
-            installOptions,
-            _req,
-            slackRes
-          ) => {
-            try {
-              const metadata =
-                installOptions.metadata
-                  ? JSON.parse(
-                      installOptions.metadata
-                    )
-                  : null;
+router.get("/slack/callback", async (req, res) => {
+  try {
+    await slackInstaller.handleCallback(req, res, {
+      success: async (installation, installOptions, _req, slackRes) => {
+        try {
+          const metadata = installOptions.metadata
+            ? JSON.parse(installOptions.metadata)
+            : null;
 
-              const userId =
-                metadata?.userId;
+          const userId = metadata?.userId;
 
-              if (!userId) {
-                slackRes.writeHead(400, {
-                  "Content-Type":
-                    "text/plain",
-                });
+          if (!userId) {
+            slackRes.writeHead(400, {
+              "Content-Type": "text/plain",
+            });
 
-                slackRes.end(
-                  "Missing application user ID."
-                );
+            slackRes.end("Missing application user ID.");
 
-                return;
-              }
+            return;
+          }
 
-              const accessToken =
-                installation.bot?.token;
+          const accessToken = installation.bot?.token;
 
-              if (!accessToken) {
-                slackRes.writeHead(400, {
-                  "Content-Type":
-                    "text/plain",
-                });
+          if (!accessToken) {
+            slackRes.writeHead(400, {
+              "Content-Type": "text/plain",
+            });
 
-                slackRes.end(
-                  "Slack bot token was not returned."
-                );
+            slackRes.end("Slack bot token was not returned.");
 
-                return;
-              }
+            return;
+          }
 
-              await saveSlackConnection(
-                userId,
-                accessToken
-              );
+          await saveSlackConnection(userId, accessToken);
 
-              slackRes.writeHead(200, {
-                "Content-Type":
-                  "text/html; charset=utf-8",
-              });
+          slackRes.writeHead(200, {
+            "Content-Type": "text/html; charset=utf-8",
+          });
 
-              slackRes.end(`
+          slackRes.end(`
                 <!DOCTYPE html>
                 <html>
                   <head>
@@ -217,40 +166,27 @@ router.get(
                   </body>
                 </html>
               `);
-            } catch (error) {
-              console.error(
-                "Slack connection save error:",
-                error
-              );
+        } catch (error) {
+          console.error("Slack connection save error:", error);
 
-              slackRes.writeHead(500, {
-                "Content-Type":
-                  "text/plain",
-              });
+          slackRes.writeHead(500, {
+            "Content-Type": "text/plain",
+          });
 
-              slackRes.end(
-                "Slack authorization succeeded, but saving the connection failed."
-              );
-            }
-          },
+          slackRes.end(
+            "Slack authorization succeeded, but saving the connection failed.",
+          );
+        }
+      },
 
-          failure: (
-            error,
-            _installOptions,
-            _req,
-            slackRes
-          ) => {
-            console.error(
-              "Slack OAuth callback error:",
-              error
-            );
+      failure: (error, _installOptions, _req, slackRes) => {
+        console.error("Slack OAuth callback error:", error);
 
-            slackRes.writeHead(500, {
-              "Content-Type":
-                "text/html; charset=utf-8",
-            });
+        slackRes.writeHead(500, {
+          "Content-Type": "text/html; charset=utf-8",
+        });
 
-            slackRes.end(`
+        slackRes.end(`
               <!DOCTYPE html>
               <html>
                 <body>
@@ -259,70 +195,83 @@ router.get(
                 </body>
               </html>
             `);
-          },
-        }
-      );
-    } catch (error) {
-      console.error(
-        "Slack OAuth error:",
-        error
-      );
+      },
+    });
+  } catch (error) {
+    console.error("Slack OAuth error:", error);
 
-      if (!res.headersSent) {
-        res
-          .status(500)
-          .send("Failed to complete Slack OAuth.");
-      }
+    if (!res.headersSent) {
+      res.status(500).send("Failed to complete Slack OAuth.");
     }
   }
-);
+});
 
 // ======================================================
 // SLACK FAILED
 // ======================================================
 
-router.get(
-  "/slack/failed",
-  (_req, res) => {
-    res.status(401).send(
-      "Slack authentication failed."
-    );
-  }
-);
+router.get("/slack/failed", (_req, res) => {
+  res.status(401).send("Slack authentication failed.");
+});
 
 // ======================================================
 // SLACK DISCONNECT
 // ======================================================
 
-router.delete(
-  "/slack",
-  async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({
-          message: "Authentication required",
-        });
-      }
+// ======================================================
+// SLACK STATUS
+// ======================================================
 
-      const user = req.user as {
-        id: string;
-      };
-
-      await disconnectSlack(user.id);
-
-      res.json({
-        message:
-          "Slack disconnected successfully",
-      });
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        message:
-          "Failed to disconnect Slack",
+router.get("/slack/status", async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        message: "Authentication required",
       });
     }
-  }
-);
 
+    const user = req.user as { id: string };
+
+    const connection = await getSlackConnection(user.id);
+
+    return res.json({
+      connected: Boolean(connection),
+      connection,
+    });
+  } catch (error) {
+    console.error("Failed to get Slack status:", error);
+
+    return res.status(500).json({
+      message: "Failed to get Slack status",
+    });
+  }
+});
+
+// ======================================================
+// SLACK DISCONNECT
+// ======================================================
+
+router.delete("/slack", async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        message: "Authentication required",
+      });
+    }
+
+    const user = req.user as { id: string };
+
+    await disconnectSlack(user.id);
+
+    return res.json({
+      message: "Slack disconnected successfully",
+    });
+  } catch (error) {
+    console.error("Failed to disconnect Slack:", error);
+
+    return res.status(500).json({
+      message: "Failed to disconnect Slack",
+    });
+  }
+});
 export default router;

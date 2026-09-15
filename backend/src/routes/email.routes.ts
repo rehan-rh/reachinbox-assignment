@@ -12,6 +12,10 @@ import {
   searchEmailsController,
 } from "../controllers/search.controller";
 
+import {
+  getSendersController,
+} from "../controllers/sender.controller";
+
 import { requireAuth } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -21,6 +25,11 @@ router.use(requireAuth);
 router.get(
   "/search",
   searchEmailsController
+);
+
+router.get(
+  "/senders",
+  getSendersController
 );
 
 router.post(

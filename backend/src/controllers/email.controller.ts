@@ -7,9 +7,7 @@ export async function scheduleEmailsController(
   res: Response
 ) {
   try {
-    const user = req.user as {
-      id: string;
-    };
+    const user = req.user as { id: string };
 
     const {
       senderId,
@@ -18,16 +16,17 @@ export async function scheduleEmailsController(
       body,
       startTime,
       delayMs,
+      hourlyLimit,
     } = req.body;
 
-    // Validate authentication
+    // Check authentication
     if (!user?.id) {
       return res.status(401).json({
         message: "Authentication required",
       });
     }
 
-    // Validate request body
+    // Check required fields
     if (
       !senderId ||
       !recipients ||
@@ -36,14 +35,15 @@ export async function scheduleEmailsController(
       !subject ||
       !body ||
       !startTime ||
-      delayMs === undefined
+      delayMs === undefined ||
+      hourlyLimit === undefined
     ) {
       return res.status(400).json({
         message: "Missing required fields",
       });
     }
 
-    // Make sure sender belongs to logged-in user
+    // Make sure the sender belongs to the logged-in user
     const sender = await prisma.sender.findFirst({
       where: {
         id: senderId,
@@ -75,10 +75,7 @@ export async function scheduleEmailsController(
     // Validate delay
     if (
       typeof delayMs !== "number" ||
-      delayMs <
-        Number(
-          process.env.MIN_EMAIL_DELAY_MS || 2000
-        )
+      delayMs < Number(process.env.MIN_EMAIL_DELAY_MS || 2000)
     ) {
       return res.status(400).json({
         message: `delayMs must be at least ${
@@ -87,6 +84,21 @@ export async function scheduleEmailsController(
       });
     }
 
+    // Validate hourly limit
+    const parsedHourlyLimit = Number(hourlyLimit);
+
+    if (
+      !Number.isInteger(parsedHourlyLimit) ||
+      parsedHourlyLimit < 1 ||
+      parsedHourlyLimit > 10000
+    ) {
+      return res.status(400).json({
+        message:
+          "hourlyLimit must be an integer between 1 and 10000",
+      });
+    }
+
+    // Schedule the campaign
     const emails = await scheduleEmails({
       userId: user.id,
       senderId,
@@ -95,12 +107,14 @@ export async function scheduleEmailsController(
       body,
       startTime: scheduleDate,
       delayMs,
+      hourlyLimit: parsedHourlyLimit,
     });
 
     return res.status(201).json({
       message: `${emails.length} emails scheduled successfully`,
       count: emails.length,
       emails,
+      hourlyLimit: parsedHourlyLimit,
     });
   } catch (error) {
     console.error(error);
