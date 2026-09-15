@@ -4,6 +4,12 @@ import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 
 import { prisma } from "./database";
 
+// ======================================================
+// DEMO SENDER
+// ======================================================
+
+const DEMO_SENDER_EMAIL =
+  process.env.DEMO_SENDER_EMAIL!;
 
 // ======================================================
 // GOOGLE OAUTH
@@ -41,6 +47,7 @@ passport.use(
         const avatar =
           profile.photos?.[0]?.value || null;
 
+        // Create or update the application user
         const user = await prisma.user.upsert({
           where: {
             googleId,
@@ -58,14 +65,44 @@ passport.use(
           },
         });
 
+        // ======================================================
+        // CREATE DEMO SENDER FOR THIS USER
+        // ======================================================
+
+        if (DEMO_SENDER_EMAIL) {
+          const existingSender =
+            await prisma.sender.findFirst({
+              where: {
+                userId: user.id,
+              },
+            });
+
+          if (!existingSender) {
+            await prisma.sender.create({
+              data: {
+                userId: user.id,
+                email: DEMO_SENDER_EMAIL,
+              },
+            });
+
+            console.log(
+              `Demo sender created for user ${user.email}: ${DEMO_SENDER_EMAIL}`
+            );
+          }
+        }
+
         return done(null, user);
       } catch (error) {
+        console.error(
+          "Google authentication error:",
+          error
+        );
+
         return done(error);
       }
     }
   )
 );
-
 
 // ======================================================
 // SLACK OAUTH
@@ -100,32 +137,35 @@ passport.use(
   )
 );
 
-
 // ======================================================
 // SESSION SERIALIZATION
 // ======================================================
 
-passport.serializeUser((user: any, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id: string, done) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!user) {
-      return done(null, false);
-    }
-
-    done(null, user);
-  } catch (error) {
-    done(error);
+passport.serializeUser(
+  (user: any, done) => {
+    done(null, user.id);
   }
-});
+);
 
+passport.deserializeUser(
+  async (id: string, done) => {
+    try {
+      const user =
+        await prisma.user.findUnique({
+          where: {
+            id,
+          },
+        });
+
+      if (!user) {
+        return done(null, false);
+      }
+
+      done(null, user);
+    } catch (error) {
+      done(error);
+    }
+  }
+);
 
 export default passport;
