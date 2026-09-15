@@ -3,7 +3,7 @@
 export default function Home() {
   const loginWithGoogle = () => {
     window.location.href =
-      "http://localhost:5000/auth/google";
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (
