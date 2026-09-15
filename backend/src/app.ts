@@ -59,7 +59,6 @@ app.use(
   "/admin/queues",
   serverAdapter.getRouter()
 );
-
 // Emails
 app.use("/api/emails", emailRoutes);
 
