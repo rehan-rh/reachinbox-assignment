@@ -44,6 +44,10 @@ export default function DashboardPage() {
   const [emailLoading, setEmailLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000";
+
   useEffect(() => {
     async function loadDashboard() {
       try {
@@ -117,7 +121,7 @@ export default function DashboardPage() {
           </p>
 
           <a
-            href="http://localhost:5000/auth/google"
+            href={`${API_URL}/auth/google`}
             className="mt-6 inline-block rounded-lg bg-slate-900 px-6 py-3 font-medium text-white hover:bg-slate-800"
           >
             Continue with Google
@@ -141,11 +145,11 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar */}
+
       <Sidebar />
 
-      {/* Main content */}
       <div className="flex min-w-0 flex-1 flex-col">
+
         <Header
           name={user.name}
           email={user.email}
@@ -154,10 +158,13 @@ export default function DashboardPage() {
         />
 
         <main className="flex-1 p-6 lg:p-8">
+
           <div className="mx-auto max-w-7xl">
 
             {/* Page heading */}
+
             <div className="mb-8">
+
               <p className="text-sm font-medium text-blue-600">
                 WORKSPACE
               </p>
@@ -169,12 +176,15 @@ export default function DashboardPage() {
               <p className="mt-1 text-sm text-slate-500">
                 Monitor your email outreach campaigns.
               </p>
+
             </div>
 
             {/* Statistics */}
+
             <section className="grid gap-5 md:grid-cols-3">
 
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
                 <p className="text-sm font-medium text-slate-500">
                   Scheduled
                 </p>
@@ -186,9 +196,11 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   Waiting to be sent
                 </p>
+
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
                 <p className="text-sm font-medium text-slate-500">
                   Sent
                 </p>
@@ -200,9 +212,11 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   Successfully sent
                 </p>
+
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
                 <p className="text-sm font-medium text-slate-500">
                   Failed
                 </p>
@@ -214,13 +228,17 @@ export default function DashboardPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   Need attention
                 </p>
+
               </div>
 
             </section>
 
             {/* Emails */}
+
             <section className="mt-8">
+
               <div className="mb-4">
+
                 <h2 className="text-lg font-semibold text-slate-900">
                   Recent Emails
                 </h2>
@@ -228,22 +246,30 @@ export default function DashboardPage() {
                 <p className="text-sm text-slate-500">
                   Your latest email activity.
                 </p>
+
               </div>
 
               <EmailTable
                 emails={emails.slice(0, 10)}
                 loading={emailLoading}
               />
+
             </section>
 
             {/* Slack */}
+
             <section className="mt-8">
+
               <SlackConnection userId={user.id} />
+
             </section>
 
           </div>
+
         </main>
+
       </div>
+
     </div>
   );
 }
